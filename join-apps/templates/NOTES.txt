@@ -1,0 +1,3 @@
+To verify everything works:
+1. Start minikube-ip-hosts.sh script with sudo priveledge.
+2. Try to access /calc location

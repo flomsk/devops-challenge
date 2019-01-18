@@ -1,0 +1,10 @@
+FROM node:alpine
+MAINTAINER Oleg Makarov <theolegmakarov@gmail.com>
+
+WORKDIR /opt/calc
+ADD acceleration-calc /opt/calc
+RUN yarn install && yarn build
+
+ENTRYPOINT ["yarn", "start"]
+
+EXPOSE 3000

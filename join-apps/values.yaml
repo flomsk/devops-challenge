@@ -1,0 +1,67 @@
+# Default values for join-apps.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+names:
+  a: a
+  dv: dv
+  calc: calc
+
+image:
+  repository: flomsk/join-apps
+  taga: a
+  tagdv: dv
+  tagcalc: calc
+  pullPolicy: Always
+
+webport:
+  a: 3002
+  aname: a-port
+  dv: 3001
+  dvname: dv-port
+  calc: 3000
+  calcname: calc-port
+
+probes:
+  init: 5
+  period: 5
+  success: 1
+  failure: 1
+  timeout: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: 
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /calc
+  hosts:
+    - acceleration-calc.local
+  #tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

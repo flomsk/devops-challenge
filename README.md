@@ -1,3 +1,19 @@
+# Solution
+
+### Prerequisites
+1. Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and [minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-minikube). Make `minikube start` to initialize your local kubernetes cluster. Check that cluster is configured correctly with `kubectl get nodes` or `kubectl get all`
+2. Install [helm](https://docs.helm.sh/using_helm/#installing-helm) and make `helm init`
+3. You must have [docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) installed.
+4. You must have an account on [Docker Hub](https://hub.docker.com/). *PS. In my example I will use my own **flomsk** account.*
+
+### Installation steps
+- Now you have to build containers and upload them to Docker Hub.
+  - `docker login` - enter your credentials to Docker Hub
+  - start script which builds and uploads images to docker hub. `/bin/bash upload-images.sh HUBUSERNAME HUBREPOSITORY`. In my case it will be `./upload-images.sh flomsk join-apps`. Repository name we will need in the next steps.
+- Next step is to install nginx-ingress-controller. `helm install --namespace ingress --name proxy stable/nginx-ingress`
+- Make a changes in `join-apps/values.yaml`. You must specify your image repository and prefered ingress hostname. Or you can leave as is and use my set.
+- Start the main helm chart. `helm install --name acceleration join-apps`. Then you will see NOTES about how to verify your installation.
+____________________________________________
 # Infrastructure Engineer (DevOps) Challenge
 ![JOIN acceleration](https://github.com/join-com/devops-challenge/raw/master/illustration.png)
 

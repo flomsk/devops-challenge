@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+  labels:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+    chart: {{ template "join-apps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tagcalc }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: WEB_PORT
+            value: "{{ .Values.webport.calc }}"
+          - name: DV_URL
+            value: "http://{{ template "join-apps.name" . }}-{{ .Values.names.dv }}:{{ .Values.webport.dv }}/dv"
+          - name: A_URL
+            value: "http://{{ template "join-apps.name" . }}-{{ .Values.names.a }}:{{ .Values.webport.a }}/a"
+          ports:
+            - name: {{ .Values.webport.calcname }}
+              containerPort: {{ .Values.webport.calc }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.webport.calcname }}
+            initialDelaySeconds: {{ .Values.probes.init }}
+            periodSeconds: {{ .Values.probes.period }}
+            successThreshold: {{ .Values.probes.success }}
+            failureThreshold: {{ .Values.probes.failure }}
+            timeoutSeconds: {{ .Values.probes.timeout }}
+          readinessProbe:
+            httpGet:
+              path: /calc
+              port: {{ .Values.webport.calcname }}
+            initialDelaySeconds: {{ .Values.probes.init }}
+            periodSeconds: {{ .Values.probes.period }}
+            successThreshold: {{ .Values.probes.success }}
+            failureThreshold: {{ .Values.probes.failure }}
+            timeoutSeconds: {{ .Values.probes.timeout }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+  labels:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+    chart: {{ template "join-apps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.webport.calc }}
+      targetPort: {{ .Values.webport.calc }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+    release: {{ .Release.Name }}
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+  labels:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+    chart: {{ template "join-apps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+  {{- range .Values.ingress.hosts }}
+    - host: {{ . }}
+  {{- end }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path }}
+            backend:
+              serviceName: {{ template "join-apps.name" . }}-{{ .Values.names.calc }}
+              servicePort: http

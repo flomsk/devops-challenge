@@ -1,0 +1,11 @@
+FROM node:alpine
+MAINTAINER Oleg Makarov <theolegmakarov@gmail.com>
+
+WORKDIR /opt/dv
+ADD acceleration-dv /opt/dv
+#RUN yarn install && yarn add dotenv && yarn build
+RUN yarn install && yarn build
+
+ENTRYPOINT ["yarn", "start"]
+
+EXPOSE 3001

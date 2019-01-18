@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+  labels:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+    chart: {{ template "join-apps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.taga }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: WEB_PORT
+            value: "{{ .Values.webport.a }}"
+          ports:
+            - name: {{ .Values.webport.aname }}
+              containerPort: {{ .Values.webport.a }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.webport.aname }}
+            initialDelaySeconds: {{ .Values.probes.init }}
+            periodSeconds: {{ .Values.probes.period }}
+            successThreshold: {{ .Values.probes.success }}
+            failureThreshold: {{ .Values.probes.failure }}
+            timeoutSeconds: {{ .Values.probes.timeout }}
+          readinessProbe:
+            httpGet:
+              path: /a
+              port: {{ .Values.webport.aname }}
+            initialDelaySeconds: {{ .Values.probes.init }}
+            periodSeconds: {{ .Values.probes.period }}
+            successThreshold: {{ .Values.probes.success }}
+            failureThreshold: {{ .Values.probes.failure }}
+            timeoutSeconds: {{ .Values.probes.timeout }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+  labels:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+    chart: {{ template "join-apps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.webport.a }}
+      targetPort: {{ .Values.webport.a }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "join-apps.name" . }}-{{ .Values.names.a }}
+    release: {{ .Release.Name }}
+
